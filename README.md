@@ -13,7 +13,8 @@ This does not rely on the ```dart:io``` package in any way, so it is avilable fo
 Add the package to the ```dependencies``` section of your pubspec.yaml
 ```
 dependencies:
-  epub-cn: ^1.2.0
+  epub:
+    git: https://github.com/creatint/dart-epub-cn
 ```
 
 ## Example
