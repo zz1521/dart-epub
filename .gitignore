@@ -29,3 +29,5 @@ pubspec.lock
 
 #Ignore VSCode Directory
 .vscode/
+
+.idea/
