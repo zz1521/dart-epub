@@ -31,9 +31,19 @@ class PackageReader {
     xml.XmlDocument containerDocument =
         xml.parse(utf8.decode(rootFileEntry.content));
     String opfNamespace = "http://www.idpf.org/2007/opf";
-    xml.XmlElement packageNode = containerDocument
-        .findElements("package", namespace: opfNamespace)
-        .firstWhere((xml.XmlElement elem) => elem != null);
+    xml.XmlElement packageNode;
+    if (containerDocument
+            .findElements("package", namespace: opfNamespace)
+            .length >=
+        1) {
+      packageNode = containerDocument
+          .findElements("package", namespace: opfNamespace)
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    } else {
+      packageNode = containerDocument
+          .findElements("package")
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    }
     EpubPackage result = new EpubPackage();
     String epubVersionValue = packageNode.getAttribute("version");
     if (epubVersionValue == "2.0")
@@ -42,34 +52,66 @@ class PackageReader {
       result.Version = EpubVersion.Epub3;
     else
       throw new Exception("Unsupported EPUB version: ${epubVersionValue}.");
-    xml.XmlElement metadataNode = packageNode
-        .findElements("metadata", namespace: opfNamespace)
-        .firstWhere((xml.XmlElement elem) => elem != null);
+    xml.XmlElement metadataNode;
+    if (packageNode
+        .findElements("metadata", namespace: opfNamespace).length >= 1) {
+      metadataNode = packageNode
+          .findElements("metadata", namespace: opfNamespace)
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    } else {
+      metadataNode = packageNode
+          .findElements("metadata")
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    }
     if (metadataNode == null)
       throw new Exception(
           "EPUB parsing error: metadata not found in the package.");
     EpubMetadata metadata = readMetadata(metadataNode, result.Version);
     result.Metadata = metadata;
-    xml.XmlElement manifestNode = packageNode
-        .findElements("manifest", namespace: opfNamespace)
-        .firstWhere((xml.XmlElement elem) => elem != null);
+    xml.XmlElement manifestNode;
+    if (packageNode
+        .findElements("manifest", namespace: opfNamespace).length >= 1) {
+      manifestNode = packageNode
+          .findElements("manifest", namespace: opfNamespace)
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    } else {
+      manifestNode = packageNode
+          .findElements("manifest")
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    }
     if (manifestNode == null)
       throw new Exception(
           "EPUB parsing error: manifest not found in the package.");
     EpubManifest manifest = readManifest(manifestNode);
     result.Manifest = manifest;
 
-    xml.XmlElement spineNode = packageNode
-        .findElements("spine", namespace: opfNamespace)
-        .firstWhere((xml.XmlElement elem) => elem != null);
+    xml.XmlElement spineNode;
+    if (packageNode
+        .findElements("spine", namespace: opfNamespace).length >= 1) {
+      spineNode = packageNode
+          .findElements("spine", namespace: opfNamespace)
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    } else {
+      spineNode = packageNode
+          .findElements("spine")
+          .firstWhere((xml.XmlElement elem) => elem != null);
+    }
     if (spineNode == null)
       throw new Exception(
           "EPUB parsing error: spine not found in the package.");
     EpubSpine spine = readSpine(spineNode);
     result.Spine = spine;
-    xml.XmlElement guideNode = packageNode
-        .findElements("guide", namespace: opfNamespace)
-        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    xml.XmlElement guideNode;
+    if (packageNode
+        .findElements("guide", namespace: opfNamespace).length >= 1) {
+      guideNode = packageNode
+          .findElements("guide", namespace: opfNamespace)
+          .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    } else {
+      guideNode = packageNode
+          .findElements("guide")
+          .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    }
     if (guideNode != null) {
       EpubGuide guide = readGuide(guideNode);
       result.Guide = guide;
