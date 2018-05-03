@@ -1,5 +1,9 @@
-# dart-epub
-[![Build Status](https://travis-ci.org/orthros/dart-epub.svg?branch=master)](https://travis-ci.org/orthros/dart-epub)
+# dart-epub-cn
+Replicated from [dart-epub](https://github.com/orthros/dart-epub)
+
+Because some epubs cannot be parsed correctly in China, I removed some restrictions of namespace for parsing xml in *lib/src/entities/readers/package_reader.dart PackageReader*.
+
+在中国有一些epub文件无法正确解析，因此我移除了解析xml的namespace限制条件。
 
 Epub Reader for Dart inspired by [this fantastic C# Epub Reader](https://github.com/versfx/EpubReader)
 
@@ -9,7 +13,7 @@ This does not rely on the ```dart:io``` package in any way, so it is avilable fo
 Add the package to the ```dependencies``` section of your pubspec.yaml
 ```
 dependencies:
-  epub: ^1.2.0
+  epub-cn: ^1.2.0
 ```
 
 ## Example
