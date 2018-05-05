@@ -24,6 +24,105 @@ import '../utils/enum_from_string.dart';
 import '../utils/zip_path_utils.dart';
 
 class NavigationReader {
+
+  static EpubNavigation readNavigationSync(Archive epubArchive,
+      String contentDirectoryPath, EpubPackage package) {
+    EpubNavigation result = new EpubNavigation();
+    String tocId = package.Spine.TableOfContents;
+    if (tocId == null || tocId.isEmpty) {
+      throw new Exception("EPUB parsing error: TOC ID is empty.");
+    }
+
+    EpubManifestItem tocManifestItem = package.Manifest.Items.firstWhere(
+            (EpubManifestItem item) => item.Id.toLowerCase() == tocId.toLowerCase(),
+        orElse: () => null);
+    if (tocManifestItem == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC item ${tocId} not found in EPUB manifest.");
+    }
+
+    String tocFileEntryPath =
+    ZipPathUtils.combine(contentDirectoryPath, tocManifestItem.Href);
+    ArchiveFile tocFileEntry = epubArchive.files.firstWhere(
+            (ArchiveFile file) =>
+        file.name.toLowerCase() == tocFileEntryPath.toLowerCase(),
+        orElse: () => null);
+    if (tocFileEntry == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC file ${tocFileEntryPath} not found in archive.");
+    }
+
+    xml.XmlDocument containerDocument =
+    xml.parse(UTF8.decode(tocFileEntry.content));
+
+    String ncxNamespace = "http://www.daisy.org/z3986/2005/ncx/";
+    xml.XmlElement ncxNode = containerDocument
+        .findAllElements("ncx", namespace: ncxNamespace)
+        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    if (ncxNode == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC file does not contain ncx element.");
+    }
+
+    xml.XmlElement headNode = ncxNode
+        .findAllElements("head", namespace: ncxNamespace)
+        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    if (headNode == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC file does not contain head element.");
+    }
+
+    EpubNavigationHead navigationHead = readNavigationHead(headNode);
+    result.Head = navigationHead;
+    xml.XmlElement docTitleNode = ncxNode
+        .findElements("docTitle", namespace: ncxNamespace)
+        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    if (docTitleNode == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC file does not contain docTitle element.");
+    }
+
+    EpubNavigationDocTitle navigationDocTitle =
+    readNavigationDocTitle(docTitleNode);
+    result.DocTitle = navigationDocTitle;
+    result.DocAuthors = new List<EpubNavigationDocAuthor>();
+    ncxNode
+        .findElements("docAuthor", namespace: ncxNamespace)
+        .forEach((xml.XmlElement docAuthorNode) {
+      EpubNavigationDocAuthor navigationDocAuthor =
+      readNavigationDocAuthor(docAuthorNode);
+      result.DocAuthors.add(navigationDocAuthor);
+    });
+
+    xml.XmlElement navMapNode = ncxNode
+        .findElements("navMap", namespace: ncxNamespace)
+        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    if (navMapNode == null) {
+      throw new Exception(
+          "EPUB parsing error: TOC file does not contain navMap element.");
+    }
+
+    EpubNavigationMap navMap = readNavigationMap(navMapNode);
+    result.NavMap = navMap;
+    xml.XmlElement pageListNode = ncxNode
+        .findElements("pageList", namespace: ncxNamespace)
+        .firstWhere((xml.XmlElement elem) => elem != null, orElse: () => null);
+    if (pageListNode != null) {
+      EpubNavigationPageList pageList = readNavigationPageList(pageListNode);
+      result.PageList = pageList;
+    }
+
+    result.NavLists = new List<EpubNavigationList>();
+    ncxNode
+        .findElements("navList", namespace: ncxNamespace)
+        .forEach((xml.XmlElement navigationListNode) {
+      EpubNavigationList navigationList =
+      readNavigationList(navigationListNode);
+      result.NavLists.add(navigationList);
+    });
+
+    return result;
+  }
   static Future<EpubNavigation> readNavigation(Archive epubArchive,
       String contentDirectoryPath, EpubPackage package) async {
     EpubNavigation result = new EpubNavigation();

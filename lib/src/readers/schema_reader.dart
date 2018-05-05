@@ -28,4 +28,22 @@ class SchemaReader {
 
     return result;
   }
+
+  static EpubSchema readSchemaSync(Archive epubArchive) {
+    EpubSchema result = new EpubSchema();
+
+    String rootFilePath = RootFilePathReader.getRootFilePathSync(epubArchive);
+    String contentDirectoryPath = ZipPathUtils.getDirectoryPath(rootFilePath);
+    result.ContentDirectoryPath = contentDirectoryPath;
+
+    EpubPackage package =
+    PackageReader.readPackageSync(epubArchive, rootFilePath);
+    result.Package = package;
+
+    EpubNavigation navigation = NavigationReader.readNavigationSync(
+        epubArchive, contentDirectoryPath, package);
+    result.Navigation = navigation;
+
+    return result;
+  }
 }

@@ -18,10 +18,22 @@ abstract class EpubContentFileRef {
   EpubContentType ContentType;
   String ContentMimeType;
 
+  List<int> readContentAsBytesSync() {
+    ArchiveFile contentFileEntry = getContentFileEntry();
+    var content = openContentStream(contentFileEntry);
+    return content;
+  }
+
   Future<List<int>> readContentAsBytes() async {
     ArchiveFile contentFileEntry = getContentFileEntry();
     var content = openContentStream(contentFileEntry);
     return content;
+  }
+
+  String readContentAsTextSync() {
+    List<int> contentStream = getContentStream();
+    String result = UTF8.decode(contentStream);
+    return result;
   }
 
   Future<String> readContentAsText() async {
