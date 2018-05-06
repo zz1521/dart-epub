@@ -1,127 +1,132 @@
 # dart-epub
-Forked from [dart-epub by Colin Nelson](https://github.com/orthros/dart-epub)
+复制于[dart-epub by Colin Nelson](https://github.com/orthros/dart-epub)
 
-Because some epubs cannot be parsed correctly in China, I removed some restrictions of namespace(http://www.idpf.org/2007/ops) for parsing xml in *lib/src/entities/readers/package_reader.dart PackageReader*.
+在中国有一些epub文件无法正确解析，因此我移除了解析xml的namespace(http://www.idpf.org/2007/ops)限制条件。
 
-Epub Reader for Dart inspired by [this fantastic C# Epub Reader](https://github.com/versfx/EpubReader)
+增加了对应的sync方法。
 
-This does not rely on the ```dart:io``` package in any way, so it is avilable for both desktop and web-based implementations
+启发于[C# Epub Reader](https://github.com/versfx/EpubReader)的Dart版ePub解析器
 
-[中文版](README-zh.md)
+此项目不依赖```dart:io```，因此可用于桌面、web、移动端的开发。
 
-## Installing
-Add the package to the ```dependencies``` section of your pubspec.yaml
+## 安装
+
+把扩展添加到pubspec.yaml文件的```dependencies``` 部分
+
 ```
 dependencies:
   epub:
-    git: https://github.com/creatint/dart-epub-cn
+    git: https://github.com/creatint/dart-epub
 ```
 
-## Example
+## 例子
 ```dart
 
-//Get the epub into memory somehow
+//把文件数据读进内存
 String fileName = "hittelOnGoldMines.epub";
 String fullPath = path.join(io.Directory.current.path, fileName);
 var targetFile = new io.File(fullPath);
 List<int> bytes = await targetFile.readAsBytes();
 
 
+// 打开并书籍，把全部内容读进内存
 // Opens a book and reads all of its content into the memory
 EpubBook epubBook = await EpubReader.readBook(bytes);
             
-// COMMON PROPERTIES
+// 常用属性
 
-// Book's title
+// 书籍标题
 String title = epubBook.Title;
 
-// Book's authors (comma separated list)
+// 书籍作者 (逗号分割)
 String author = epubBook.Author;
 
-// Book's authors (list of authors names)
+// 书籍作者 (作者姓名列表)
 List<String> authors = epubBook.AuthorList;
 
-// Book's cover image (null if there is no cover)
+// 书籍封面图片 (无图为null)
 Image coverImage = epubBook.CoverImage;
 
             
-// CHAPTERS
+// 章节
 
-// Enumerating chapters
+// 遍历章节
 epubBook.Chapters.forEach((EpubChapter chapter) {
-  // Title of chapter
+  // 章节标题
   String chapterTitle = chapter.Title;
               
-  // HTML content of current chapter
+  /// 当前章节的HTML文档
   String chapterHtmlContent = chapter.HtmlContent;
 
-  // Nested chapters
+  /// 嵌套的章节
   List<EpubChapter> subChapters = chapter.SubChapters;
 });
 
             
-// CONTENT
+// 内容
 
-// Book's content (HTML files, stlylesheets, images, fonts, etc.)
+// 书籍内容 (HTML文件、样式、图片、字体等)
 EpubContent bookContent = epubBook.Content;
 
             
-// IMAGES
+// 图片
 
-// All images in the book (file name is the key)
+// 书籍图片 （key为文件名）
 Map<String, EpubByteContentFile> images = bookContent.Images;
 
 EpubByteContentFile firstImage = images.values.first;
 
-// Content type (e.g. EpubContentType.IMAGE_JPEG, EpubContentType.IMAGE_PNG)
+// 内容类型 (例如 EpubContentType.IMAGE_JPEG, EpubContentType.IMAGE_PNG)
 EpubContentType contentType = firstImage.ContentType;
 
-// MIME type (e.g. "image/jpeg", "image/png")
+// MIME类型 (例如 "image/jpeg", "image/png")
 String mimeContentType = firstImage.ContentMimeType;
 
-// HTML & CSS
+// HTML和CSS
 
-// All XHTML files in the book (file name is the key)
+// 全部XHTML文件 （key为文件名）
 Map<String, EpubTextContentFile> htmlFiles = bookContent.Html;
 
-// All CSS files in the book (file name is the key)
+// 全部CSS文件 （key为文件名）
 Map<String, EpubTextContentFile> cssFiles = bookContent.Css;
 
 // Entire HTML content of the book
+// 书籍全部HTML 内容
 htmlFiles.values.forEach((EpubTextContentFile htmlFile) {
   String htmlContent = htmlFile.Content;
 });
 
-// All CSS content in the book
+// 书籍全部css内容
 cssFiles.values.forEach((EpubTextContentFile cssFile){
   String cssContent = cssFile.Content;
 });
 
 
-// OTHER CONTENT
+// 其他内容
 
-// All fonts in the book (file name is the key)
+// 书籍字体 （文件名为key）
 Map<String, EpubByteContentFile> fonts = bookContent.Fonts;
 
-// All files in the book (including HTML, CSS, images, fonts, and other types of files)
+// 书籍全部文件 （包括html、css、images、font和其他类型文件）
 Map<String, EpubContentFile> allFiles = bookContent.AllFiles;
 
 
-// ACCESSING RAW SCHEMA INFORMATION
 
-// EPUB OPF data
+// 访问原始架构信息 
+
+// EPUB OPF 数据
 EpubPackage package = epubBook.Schema.Package;
 
-// Enumerating book's contributors
+// 遍历书籍编辑人员
 package.Metadata.Contributors.forEach((EpubMetadataContributor contributor){
   String contributorName = contributor.Contributor;
   String contributorRole = contributor.Role;
 });
 
-// EPUB NCX data
+// EPUB NCX 数据
 EpubNavigation navigation = epubBook.Schema.Navigation;
 
-// Enumerating NCX metadata
+// 遍历 NCX 元数据
 navigation.Head.Metadata.forEach((EpubNavigationHeadMeta meta){
   String metadataItemName = meta.Name;
   String metadataItemContent = meta.Content;
